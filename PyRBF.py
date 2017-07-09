@@ -60,7 +60,7 @@ class rbf_interpolator:
 
 def test(epsilon, res, fine_res=50):
     #interpolates a simple test function using a gaussian with shape parameter epsilon over a grid with res by res points
-    print 1
+    
     res_x = res
     res_y = res
     test_func = lambda x,y: np.sin(2*x)*np.sin(y) #function to be approximated
@@ -70,21 +70,18 @@ def test(epsilon, res, fine_res=50):
     y = np.linspace(0,np.pi,res_y)
     xx, yy = np.meshgrid(x, y)
     z_course = test_func(xx,yy)
-    print 2
+
     x_fine = np.linspace(0,np.pi,fine_res)   #Points used to test the fit
     y_fine = np.linspace(0,np.pi,fine_res)
     xx_fine, yy_fine = np.meshgrid(x_fine, y_fine)
     z_true = test_func(xx_fine,yy_fine)#np.sin(x_fine)
-    print 3
+
     points = [np.reshape(xx,res_x*res_y),np.reshape(yy,res_x*res_y)]    #Put points in
     points_fine = [np.reshape(xx_fine,fine_res**2),np.reshape(yy_fine,fine_res**2)] #easy-to-use list
-    print 4
+
     interpolator = rbf_interpolator(epsilon = epsilon)
-    print 5
     interpolator.determine_model(points, np.reshape(z_course, res_x*res_y))
-    print 6
     interpolator.plot_model(fine_res)
-    print 7
 
     fig = plt.figure() #Plot error
     ax = fig.add_subplot(111, projection='3d')
