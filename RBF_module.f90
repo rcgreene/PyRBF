@@ -48,20 +48,18 @@ subroutine RBF_matrix(points, RBF_func, coefficients, epsilon, values)
   !Determines proper coefficients for an RBF decomposition
   !over a set of 2d points
   real(kind=8), intent(in), dimension(:,:)     :: points
-  real(kind=8), intent(out), dimension(:)      :: coefficients
   !real(kind=8), intent(in)                  :: RBF_func
   real(kind=8), intent(in)                     :: epsilon
   real(kind=8)                                 :: phase
   real(kind=8), dimension(:,:), allocatable    :: dist_mat !matrix for storing distances between nodes
   real(kind=8), dimension(:,:), allocatable    :: RF_mat   !matrix for storing values of RBF
-  real(kind=8), dimension(:), intent(in)       :: values   !function to be interpolated evaluated at various points
+  real(kind=8), dimension(:), intent(in, out)  :: values   !function to be interpolated evaluated at various points (overwritten with coefficients)
   integer                                      :: point_count
-  character                                    :: lOrU = 'L'
+  integer                                      :: SUCCESS_FLAG
 
   point_count = size(points, 2)
   allocate(dist_mat(point_count, point_count))
   call point_set_distance(points, points, dist_mat)
   call matrix_eval(dist_mat, RF_mat, epsilon)
-  call sposv(lOrU, point_count, 1, RF_mat, point_count, )
-
+  call sposv('L', point_count, 1, RF_mat, point_count, values, point_count, SUCCESS_FLAG)
 end subroutine
