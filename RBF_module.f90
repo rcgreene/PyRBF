@@ -7,6 +7,13 @@ real(kind=8) function distance(X_1, Y_1, X_2, Y_2) result(dist)
   dist = SQRT(dist)
 end function distance
 
+complex(kind=8) function gaussian(dist, epsilon) result(output)
+  real(kind=8), intent(in)    :: dist
+  real(kind=8), intent(in) :: epsilon
+  real(kind=8), intent(out):: output
+  output = exp(-epsilon*(dist**2))
+end function gaussian
+
 subroutine point_set_distance(points_1, points_2, dist_mat)
   !fill dist_mat with distances between point set 1, and 2
   real(kind=8), intent(in), dimension(:,:) :: points_1, points_2
@@ -22,35 +29,39 @@ subroutine point_set_distance(points_1, points_2, dist_mat)
   end do
 end subroutine
 
-subroutine matrix_eval(mat_in, mat_out, func)
+subroutine matrix_eval(mat_in, mat_out, epsilon)
   !evaluate function for all elements of a matrix
   real(kind=8), intent(in), dimension(:,:)  :: mat_in
   real(kind=8), intent(out), dimension(:,:) :: mat_out
-  real(kind=8), intent(in)                  :: func
+  real(kind=8), intent(in)                  :: epsilon
   real(kind=8)                              :: i_max, i, j
 
   i_max = size(mat_in,1)
   do i = 1,i_max
     do j = 1,i_max
-      mat_out(i,j) = func(mat_in(i,j))
+      mat_out(i,j) = gaussian(mat_in(i,j), epsilon)
     end do
   end do
 end subroutine
 
-subroutine RBF_matrix(points, RBF_func, coefficients)
+subroutine RBF_matrix(points, RBF_func, coefficients, epsilon, values)
   !Determines proper coefficients for an RBF decomposition
   !over a set of 2d points
-  real(kind=8), intent(in), dimension(:,:)  :: points
-  real(kind=8), intent(out), dimension(:)   :: coefficients
-  real(kind=8), intent(in)                  :: RBF_func
-  complex(kind=8),                          :: epsilon
-  real(kind=8), dimension(:,:), allocatable :: dist_mat !matrix for storing distances between nodes
-  real(kind=8), dimension(:,:), allocatable :: RF_mat   !matrix for storing values of RBF
-  integer                                   :: point_count
+  real(kind=8), intent(in), dimension(:,:)     :: points
+  real(kind=8), intent(out), dimension(:)      :: coefficients
+  !real(kind=8), intent(in)                  :: RBF_func
+  real(kind=8), intent(in)                     :: epsilon
+  real(kind=8)                                 :: phase
+  real(kind=8), dimension(:,:), allocatable    :: dist_mat !matrix for storing distances between nodes
+  real(kind=8), dimension(:,:), allocatable    :: RF_mat   !matrix for storing values of RBF
+  real(kind=8), dimension(:), intent(in)       :: values   !function to be interpolated evaluated at various points
+  integer                                      :: point_count
+  character                                    :: lOrU = 'L'
 
   point_count = size(points, 2)
   allocate(dist_mat(point_count, point_count))
   call point_set_distance(points, points, dist_mat)
-  
+  call matrix_eval(dist_mat, RF_mat, epsilon)
+  call sposv(lOrU, point_count, 1, RF_mat, point_count, )
 
 end subroutine
